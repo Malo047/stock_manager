@@ -1,0 +1,19 @@
+{
+  "name": "stock_manager",
+  "version": "1.0.0",
+  "description": "Gerenciador de estoque",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx tsx watch src/services/server.ts "
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "tsx": "^4.20.3"
+  }
+}
