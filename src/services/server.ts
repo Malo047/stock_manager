@@ -43,6 +43,30 @@ app.post("/products", async (req: Request, res: Response) =>{
         connectionFailed(res);
     }
 });
+app.delete("/products/:id", async (req: Request, res: Response) =>{
+    const id = Number(req.params.id);
+    const findProduct = await prisma.product.findUnique({
+        where:{
+            id
+        }
+    });
+    if(!findProduct){
+        res.status(404).send({message:"Produto não encontrado."});
+        return
+    }
+    try {
+        const data = await prisma.product.delete({
+            where:{
+                id
+            }
+        });
+        res.status(200).send({message:"Produto deletado com sucesso."});
+        return
+    } catch (error) {
+        console.log(error);
+        connectionFailed(res);
+    }
+});
 app.listen(port, () => {
     console.log(`Servidor em execução na porta ${port}`);
 });
