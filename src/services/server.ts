@@ -61,9 +61,30 @@ app.delete("/products/:id", async (req: Request, res: Response) => {
         connectionFailed(res);
     }
 });
-app.put("/products/:id", (req: Request, res: Response) => {
+app.put("/products/:id", async (req: Request, res: Response) => {
     const id = Number(req.params.id);
+    const {name, price, quantity, typeId} = req.body
+    try {
+    const product = await findProductById(id, res);
+    if(!product) return
 
+    await prisma.product.update({
+        where: {
+            id
+        },
+        data:{
+            name,
+            price,
+            quantity,
+            type_products: typeId
+        }
+    });
+    res.status(200).send({message:"Produto atualizado com sucesso."});
+    return
+    }catch (error){
+        console.log(error);
+        connectionFailed(res);
+    }
 });
 app.listen(port, () => {
     console.log(`Servidor em execução na porta ${port}`);
