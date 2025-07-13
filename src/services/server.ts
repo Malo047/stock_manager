@@ -3,10 +3,12 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { connectionFailed } from "../utils/connectionFailed";
 import { findProductById } from "../utils/findProductById";
+import cors  from "cors";
 
 const prisma = new PrismaClient();
 const app = express();
 const port = 3000;
+app.use(cors());
 app.use(express.json());
 
 app.get("/products", async (req: Request, res: Response) => {
