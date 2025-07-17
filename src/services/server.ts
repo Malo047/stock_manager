@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { connectionFailed } from "../utils/connectionFailed";
 import { findProductById } from "../utils/findProductById";
-import cors  from "cors";
+import cors from "cors";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -65,27 +65,42 @@ app.delete("/products/:id", async (req: Request, res: Response) => {
 });
 app.put("/products/:id", async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const {name, price, quantity, typeId} = req.body
+    const { name, price, quantity, typeId } = req.body
     try {
-    const product = await findProductById(id, res);
-    if(!product) return
+        const product = await findProductById(id, res);
+        if (!product) return
 
-    await prisma.product.update({
-        where: {
-            id
-        },
-        data:{
-            name,
-            price,
-            quantity,
-            type_products: typeId
-        }
-    });
-    res.status(200).send({message:"Produto atualizado com sucesso."});
-    return
-    }catch (error){
+        await prisma.product.update({
+            where: {
+                id
+            },
+            data: {
+                name,
+                price,
+                quantity,
+                type_products: typeId
+            }
+        });
+        res.status(200).send({ message: "Produto atualizado com sucesso." });
+        return
+    } catch (error) {
         console.log(error);
         connectionFailed(res);
+    }
+});
+app.get("/users/:username", async (req: Request, res: Response) => {
+    const username = req.params.username;
+    try {
+        const data = await prisma.user.findFirst({
+            where:{
+                 name: username
+                }
+        });
+        res.status(200).json(data);
+        return
+    } catch (error) {
+        connectionFailed(res);
+        return
     }
 });
 app.listen(port, () => {
