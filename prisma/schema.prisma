@@ -37,7 +37,7 @@ model TypeProducts {
 model User {
   id          Int          @id @default(autoincrement())
   name        String       @db.VarChar(60)
-  password    String       @db.VarChar(16)
+  password    String       @db.VarChar(60)
   email       String       @db.VarChar(60)
   user_level  Int?
   level_users LevelUser? @relation(fields: [user_level], references: [id], onDelete: NoAction, onUpdate: NoAction)

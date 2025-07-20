@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { connectionFailed } from "../utils/connectionFailed";
 import { findProductById } from "../utils/findProductById";
 import cors from "cors";
+import bcrypt from "bcrypt"
 
 const prisma = new PrismaClient();
 const app = express();
@@ -88,21 +89,57 @@ app.put("/products/:id", async (req: Request, res: Response) => {
         connectionFailed(res);
     }
 });
-app.get("/users/:username", async (req: Request, res: Response) => {
-    const username = req.params.username;
-    try {
-        const data = await prisma.user.findFirst({
-            where:{
-                 name: username
-                }
-        });
-        res.status(200).json(data);
-        return
-    } catch (error) {
-        connectionFailed(res);
-        return
-    }
+app.post("/register", async (req: Request, res: Response) => {
+    const { username, password, email, userLevel } = req.body;
+    const hash = await bcrypt.hash(password, 10);
+    await prisma.user.create({
+        data: {
+            name: username,
+            password: hash,
+            email,
+            user_level: userLevel
+        }
+    });
+    res.status(200).send({ message: "Usuário criado com sucesso." });
+    return
 });
+app.post("/login", async (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    const user = await prisma.user.findFirst({
+        where: {
+            name: username
+        }
+    });
+    if (!user) {
+        res.status(404).send({ message: "Usuário não encontrado." })
+    } else {
+        const match = await bcrypt.compare(password.trim(), user.password);
+        if (match) {
+            res.status(200).send({ message: "Usuário autorizado." });
+            return
+        } else {
+            res.status(401).send({ message: "Senha incorreta" });
+            console.log("User encontrado:", user);
+            return
+        }
+    }
+
+});
+// app.get("/users/:username", async (req: Request, res: Response) => {
+//     const username = req.params.username;
+//     try {
+//         const data = await prisma.user.findFirst({ // Lembrar de alterar o campo name para ser único no banco de dados.
+//             where:{
+//                  name: username
+//                 }
+//         });
+//         res.status(200).json(data);
+//         return
+//     } catch (error) {
+//         connectionFailed(res);
+//         return
+//     }
+// });
 app.listen(port, () => {
     console.log(`Servidor em execução na porta ${port}`);
 });
