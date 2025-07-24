@@ -104,6 +104,7 @@ app.post("/register", async (req: Request, res: Response) => {
     return
 });
 app.post("/login", async (req: Request, res: Response) => {
+    let isAdmin = false;
     const { username, password } = req.body;
     const user = await prisma.user.findFirst({
         where: {
@@ -115,7 +116,16 @@ app.post("/login", async (req: Request, res: Response) => {
     } else {
         const match = await bcrypt.compare(password.trim(), user.password);
         if (match) {
-            res.status(200).send({ message: "Usuário autorizado." });
+            if (user.user_level === 1) {
+                isAdmin = true
+            };
+            res.status(200).send(
+                {
+                    message: "Usuário autorizado.",
+                    username: user.name,
+                    userId: user.id,
+                    isAdmin: isAdmin
+                });
             return
         } else {
             res.status(401).send({ message: "Senha incorreta" });
