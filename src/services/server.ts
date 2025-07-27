@@ -5,6 +5,9 @@ import { connectionFailed } from "../utils/connectionFailed";
 import { findProductById } from "../utils/findProductById";
 import cors from "cors";
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+import { authenticateToken } from "../utils/middleware/authtoken";
+import { MyJwtPayload } from "../types/express/index.custom";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -119,13 +122,20 @@ app.post("/login", async (req: Request, res: Response) => {
             if (user.user_level === 1) {
                 isAdmin = true
             };
-            res.status(200).send(
-                {
-                    message: "Usuário autorizado.",
+            const token = jwt.sign(
+                { id: user.id, username: user.name, isAdmin },
+                "segredo super secreto",
+                { expiresIn: "1h" }
+            );
+            res.status(200).send({
+                message: "Usuário autorizado.",
+                user: {
+                    id: user.id,
                     username: user.name,
-                    userId: user.id,
-                    isAdmin: isAdmin
-                });
+                    isAdmin
+                },
+                token
+            });
             return
         } else {
             res.status(401).send({ message: "Senha incorreta" });
@@ -135,21 +145,15 @@ app.post("/login", async (req: Request, res: Response) => {
     }
 
 });
-// app.get("/users/:username", async (req: Request, res: Response) => {
-//     const username = req.params.username;
-//     try {
-//         const data = await prisma.user.findFirst({ // Lembrar de alterar o campo name para ser único no banco de dados.
-//             where:{
-//                  name: username
-//                 }
-//         });
-//         res.status(200).json(data);
-//         return
-//     } catch (error) {
-//         connectionFailed(res);
-//         return
-//     }
-// });
+app.get("/admin-dashboard", authenticateToken, (req, res) => {
+    if (!req.user) {
+        return res.status(401);
+    }
+    const user = req.user as MyJwtPayload;
+
+    if (!user.isAdmin) return res.status(403).send("Acesso negado.");
+    res.send("Bem-vindo ao painel admin!");
+});
 app.listen(port, () => {
     console.log(`Servidor em execução na porta ${port}`);
 });
